@@ -1,71 +1,105 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { router } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button, TextInput, Text } from '@/components/ui';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { signIn } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setError('Please fill in all fields');
       return;
     }
 
-    // TODO: Implement actual authentication logic
+    setLoading(true);
+    setError('');
     try {
-      // Simulate login process
-      console.log('Login attempt:', { email, password });
-
-      // On successful login, navigate to home
+      await signIn(email, password);
       router.replace('/home');
-    } catch (error) {
-      Alert.alert('Error', 'Login failed. Please try again.');
+    } catch (error: any) {
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <View className="flex-1 justify-center px-8 bg-white">
-      <Text className="text-3xl font-bold text-center mb-8">Welcome Back</Text>
+  const navigateToRegister = () => {
+    router.replace('/(auth)/register');
+  };
 
-      <View className="mb-4">
-        <Text className="text-gray-700 mb-2">Email</Text>
+  const clearError = () => {
+    if (error) setError('');
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      className="flex-1 bg-white"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View>
+          <Text className="text-xl mb-8">
+            Cry whenever you need. As much as you need
+          </Text>
+          <Text className="italic mb-8">
+            Let it out. Breathe easier. Sleep easier. Science and soul agree-crying heals.
+          </Text>
+        </View>
+
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
-          placeholder="Enter your email"
+          placeholder="john.doe@example.com"
           value={email}
-          onChangeText={setEmail}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setEmail(text);
+            clearError();
+          }}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-      </View>
 
-      <View className="mb-6">
-        <Text className="text-gray-700 mb-2">Password</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
-          placeholder="Enter your password"
+          placeholder="Password"
           value={password}
-          onChangeText={setPassword}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setPassword(text);
+            clearError();
+          }}
           secureTextEntry
         />
-      </View>
 
-      <TouchableOpacity
-        className="bg-blue-600 rounded-lg py-4 mb-4"
-        onPress={handleLogin}
-      >
-        <Text className="text-white text-center font-semibold text-lg">Login</Text>
-      </TouchableOpacity>
+        {error ? (
+          <Text className="text-red-500 text-sm  mb-4 font-instrument-serif">
+            {error}
+          </Text>
+        ) : null}
 
-      <View className="flex-row justify-center">
-        <Text className="text-gray-600">Don't have an account? </Text>
-        <Link href="/(auth)/register" asChild>
-          <TouchableOpacity>
-            <Text className="text-blue-600 font-semibold">Sign up</Text>
+        <Button
+          title="Login"
+          onPress={handleLogin}
+          disabled={!email || !password}
+          loading={loading}
+          className="mb-4"
+        />
+
+        <View className="flex-row justify-center">
+          <TouchableOpacity onPress={navigateToRegister}>
+            <Text>or sign up</Text>
           </TouchableOpacity>
-        </Link>
-      </View>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

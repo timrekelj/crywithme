@@ -37,17 +37,24 @@ export const Fonts = Platform.select({
     rounded: 'ui-rounded',
     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
+    /** Local Instrument Serif fonts */
+    instrumentSerif: 'InstrumentSerif-Regular',
+    instrumentSerifItalic: 'InstrumentSerif-Italic',
   },
   default: {
     sans: 'normal',
     serif: 'serif',
     rounded: 'normal',
     mono: 'monospace',
+    instrumentSerif: 'InstrumentSerif-Regular',
+    instrumentSerifItalic: 'InstrumentSerif-Italic',
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
     rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    instrumentSerif: "'Instrument Serif', Georgia, serif",
+    instrumentSerifItalic: "'Instrument Serif', Georgia, serif",
   },
 });

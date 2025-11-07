@@ -1,105 +1,149 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Link, router } from 'expo-router';
+import { View, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { router } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button, TextInput, Text } from '@/components/ui';
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { signUp } = useAuth();
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      setError('Password must be at least 6 characters');
       return;
     }
 
-    // TODO: Implement actual registration logic
+    setLoading(true);
+    setError('');
     try {
-      // Simulate registration process
-      console.log('Registration attempt:', { name, email, password });
-
-      Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => router.replace('/(auth)/login') }
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'Registration failed. Please try again.');
+      await signUp(email, password, firstName, lastName);
+      router.replace('/(auth)/confirmation');
+    } catch (error: any) {
+      setError(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const navigateToLogin = () => {
+    router.replace('/(auth)/login');
+  };
+
+  const clearError = () => {
+    if (error) setError('');
+  };
+
   return (
-    <View className="flex-1 justify-center px-8 bg-white">
-      <Text className="text-3xl font-bold text-center mb-8">Create Account</Text>
+    <KeyboardAvoidingView 
+      className="flex-1 bg-white"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 32 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View>
+          <Text className="text-xl mb-8">
+            Cry whenever you need. As much as you need
+          </Text>
+          <Text className="italic mb-8">
+            Let it out. Breathe easier. Sleep easier. Science and soul agree-crying heals.
+          </Text>
+        </View>
 
-      <View className="mb-4">
-        <Text className="text-gray-700 mb-2">Full Name</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
-          placeholder="Enter your full name"
-          value={name}
-          onChangeText={setName}
+          placeholder="Enter your first name"
+          value={firstName}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setFirstName(text);
+            clearError();
+          }}
         />
-      </View>
 
-      <View className="mb-4">
-        <Text className="text-gray-700 mb-2">Email</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
+          placeholder="Enter your last name"
+          value={lastName}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setLastName(text);
+            clearError();
+          }}
+        />
+
+        <TextInput
           placeholder="Enter your email"
           value={email}
-          onChangeText={setEmail}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setEmail(text);
+            clearError();
+          }}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-      </View>
 
-      <View className="mb-4">
-        <Text className="text-gray-700 mb-2">Password</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
           placeholder="Enter your password"
           value={password}
-          onChangeText={setPassword}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setPassword(text);
+            clearError();
+          }}
           secureTextEntry
         />
-      </View>
 
-      <View className="mb-6">
-        <Text className="text-gray-700 mb-2">Confirm Password</Text>
         <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-white"
           placeholder="Confirm your password"
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          error={error ? true : false}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            clearError();
+          }}
           secureTextEntry
         />
-      </View>
 
-      <TouchableOpacity
-        className="bg-blue-600 rounded-lg py-4 mb-4"
-        onPress={handleRegister}
-      >
-        <Text className="text-white text-center font-semibold text-lg">Create Account</Text>
-      </TouchableOpacity>
+        {error ? (
+          <Text className="text-red-500 text-sm mb-4 font-instrument-serif">
+            {error}
+          </Text>
+        ) : null}
 
-      <View className="flex-row justify-center">
-        <Text className="text-gray-600">Already have an account? </Text>
-        <Link href="/(auth)/login" asChild>
-          <TouchableOpacity>
-            <Text className="text-blue-600 font-semibold">Sign in</Text>
+        <Button
+          title="Create Account"
+          onPress={handleRegister}
+          loading={loading}
+          disabled={!firstName || !lastName || !email || !password || !confirmPassword}
+          className="mb-4"
+        />
+
+        <View className="flex-row justify-center">
+          <TouchableOpacity onPress={navigateToLogin}>
+            <Text>or sign in</Text>
           </TouchableOpacity>
-        </Link>
-      </View>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
